@@ -306,7 +306,10 @@ fn match_formatter(
         // Char
         // SAFETY: The '%c' specifier means the char data type
         Some('c') => f.write_fmt(format_args!("{}", unsafe {
-            let c: u8 = args.arg::<core::ffi::c_char>().try_into().unwrap();
+            // It's u8, but C standard promotes vararg types smaller than 4 bytes
+            // to int/double, so need to read a full int and care about lower 8 bits only.
+            let c: u8 = args.arg::<core::ffi::c_int>().try_into().unwrap();
+
             c as char
         }))?,
         // Signed int
