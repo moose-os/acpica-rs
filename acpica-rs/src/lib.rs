@@ -1,54 +1,53 @@
 //! ACPICA Rust bindings library
-//! 
-//! This library provides Rust bindings for the ACPICA (ACPI Component Architecture) library, 
-//! enabling Rust programs to interact with the ACPI (Advanced Configuration and Power Interface) 
-//! subsystem. 
+//!
+//! This library provides Rust bindings for the ACPICA (ACPI Component Architecture) library,
+//! enabling Rust programs to interact with the ACPI (Advanced Configuration and Power Interface)
+//! subsystem.
 //!
 //! ## Overview
 //!
-//! The `AcpicaOsServices` trait defines the required interface that must be implemented to 
-//! allow ACPICA to function in a specific operating system environment. Implementations of 
-//! this trait are responsible for providing OS-specific services such as memory management, 
-//! thread synchronization, and I/O operations. 
+//! The `AcpicaOsServices` trait defines the required interface that must be implemented to
+//! allow ACPICA to function in a specific operating system environment. Implementations of
+//! this trait are responsible for providing OS-specific services such as memory management,
+//! thread synchronization, and I/O operations.
 //!
-//! The global OS services implementation is set once using the `set_os_services_implementation` 
-//! function, which ensures that the ACPICA subsystem has access to the necessary system resources 
-//! to operate correctly. Once set, this implementation cannot be changed for the lifetime of the 
+//! The global OS services implementation is set once using the `set_os_services_implementation`
+//! function, which ensures that the ACPICA subsystem has access to the necessary system resources
+//! to operate correctly. Once set, this implementation cannot be changed for the lifetime of the
 //! system.
 //!
 //! ## Features
-//! 
-//! - **Thread Safety:** The OS services implementation is stored in a thread-safe manner using 
+//!
+//! - **Thread Safety:** The OS services implementation is stored in a thread-safe manner using
 //!   the `Once` primitive, ensuring that it is initialized only once.
-//! - **Customizable OS Services:** Developers can provide custom implementations of the 
+//! - **Customizable OS Services:** Developers can provide custom implementations of the
 //!   `AcpicaOsServices` trait to tailor the ACPI interactions to their specific OS environment.
 //!
 //! ## Usage
 //!
-//! To use this library, you need to implement the `AcpicaOsServices` trait for your target 
-//! operating system. Then, set your implementation using `set_os_services_implementation` 
+//! To use this library, you need to implement the `AcpicaOsServices` trait for your target
+//! operating system. Then, set your implementation using `set_os_services_implementation`
 //! before performing any ACPI-related operations.
 //!
 //! Example:
-//! 
+//!
 //! ```rust
 //! let my_os_services = Box::new(MyAcpicaOsServicesImplementation::new());
 //! set_os_services_implementation(my_os_services);
 //! ```
-//! 
-//! In the example above, `MyAcpicaOsServicesImplementation` is a custom struct that implements 
-//! the `AcpicaOsServices` trait. The ACPI subsystem will use this implementation to interface 
+//!
+//! In the example above, `MyAcpicaOsServicesImplementation` is a custom struct that implements
+//! the `AcpicaOsServices` trait. The ACPI subsystem will use this implementation to interface
 //! with the underlying OS.
 //!
 //! # Notes
-//! This library is `no_std` and is intended to be used in environments where the standard 
-//! library is not available. The crate depends on the `alloc` crate for dynamic memory 
+//! This library is `no_std` and is intended to be used in environments where the standard
+//! library is not available. The crate depends on the `alloc` crate for dynamic memory
 //! allocation.
 #![allow(non_camel_case_types, non_snake_case)]
 #![allow(dead_code)]
 #![feature(linkage)]
 #![feature(c_variadic)]
-#![feature(prelude_2024)]
 #![no_std]
 
 extern crate alloc;
@@ -299,14 +298,23 @@ pub trait AcpicaOsServices: Send + Sync {
     ///
     /// * `interrupt_level` - The interrupt level for the handler.
     /// * `handler` - The function pointer to the interrupt handler.
-    fn remove_interrupt_handler(&self, interrupt_level: u32, handler: ACPI_OSD_HANDLER) -> ACPI_STATUS;
+    fn remove_interrupt_handler(
+        &self,
+        interrupt_level: u32,
+        handler: ACPI_OSD_HANDLER,
+    ) -> ACPI_STATUS;
 
     /// Reads a value from a physical memory address.
     ///
     /// * `address` - The physical address to read from.
     /// * `value` - The output parameter to store the read value.
     /// * `width` - The width of the value to read, in bits.
-    fn read_memory(&self, address: ACPI_PHYSICAL_ADDRESS, value: *mut u64, width: u32) -> ACPI_STATUS;
+    fn read_memory(
+        &self,
+        address: ACPI_PHYSICAL_ADDRESS,
+        value: *mut u64,
+        width: u32,
+    ) -> ACPI_STATUS;
 
     /// Writes a value to a physical memory address.
     ///
@@ -353,7 +361,13 @@ pub trait AcpicaOsServices: Send + Sync {
     /// * `register` - The configuration register to write to.
     /// * `value` - The value to write.
     /// * `width` - The width of the value to write, in bits.
-    fn write_pci_configuration(&self, pci_id: *mut ACPI_PCI_ID, register: u32, value: u64, width: u32) -> ACPI_STATUS;
+    fn write_pci_configuration(
+        &self,
+        pci_id: *mut ACPI_PCI_ID,
+        register: u32,
+        value: u64,
+        width: u32,
+    ) -> ACPI_STATUS;
 
     /// Overrides a predefined ACPI object.
     ///

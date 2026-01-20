@@ -1,13 +1,12 @@
-use core::ffi::VaListImpl;
 use core::ffi::CStr;
-use core::iter::Peekable;
-use core::fmt::Display;
 use core::ffi::VaList;
+use core::fmt::Display;
 use core::fmt::Write;
+use core::iter::Peekable;
 
 fn read_format_parameter(
     chars: &mut Peekable<impl Iterator<Item = char>>,
-    args: &mut VaListImpl<'_>,
+    args: &mut VaList<'_>,
 ) -> Option<(usize, bool)> {
     match chars.peek() {
         Some('*') => {
@@ -44,7 +43,7 @@ fn read_format_parameter(
 
 fn read_min_width(
     chars: &mut Peekable<impl Iterator<Item = char>>,
-    args: &mut VaListImpl,
+    args: &mut VaList,
     justify_left: &mut bool,
 ) -> Option<usize> {
     match read_format_parameter(chars, args) {
@@ -60,7 +59,7 @@ fn read_min_width(
 
 fn read_precision(
     chars: &mut Peekable<impl Iterator<Item = char>>,
-    args: &mut VaListImpl,
+    args: &mut VaList,
 ) -> Option<usize> {
     match read_format_parameter(chars, args) {
         Some((result, false)) => Some(result),
@@ -69,9 +68,9 @@ fn read_precision(
     }
 }
 
-pub struct CFmtConverter<'a, 'b> {
+pub struct CFmtConverter<'a> {
     pub format: &'a str,
-    pub args: VaList<'b, 'a>,
+    pub args: VaList<'a>,
 }
 
 #[allow(clippy::struct_excessive_bools)]
@@ -87,7 +86,7 @@ struct FormatParameters {
     precision: Option<usize>,
 }
 
-impl<'a, 'b> Display for CFmtConverter<'a, 'b> {
+impl<'a> Display for CFmtConverter<'a> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let mut args = self.args.clone();
 
@@ -296,7 +295,7 @@ fn format_int_signed(
 fn match_formatter(
     chars: &mut Peekable<core::str::Chars<'_>>,
     f: &mut core::fmt::Formatter<'_>,
-    args: &mut VaListImpl<'_>,
+    args: &mut VaList<'_>,
     params: FormatParameters,
 ) -> Result<(), core::fmt::Error> {
     let pad_char = if params.leading_zeroes { '0' } else { ' ' };
@@ -391,7 +390,7 @@ fn match_formatter(
 /// # Safety
 /// The next argument in `args` must be a pointer to a C string.
 unsafe fn print_string(
-    args: &mut VaListImpl<'_>,
+    args: &mut VaList<'_>,
     params: FormatParameters,
     f: &mut core::fmt::Formatter<'_>,
     pad_char: char,

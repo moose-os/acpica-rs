@@ -2,7 +2,10 @@ use core::ffi::{c_void, CStr, VaList};
 
 use acpica_sys::*;
 
-use crate::{ACPI_CPU_FLAGS, ACPI_THREAD_ID, ACPI_MUTEX, ACPI_SEMAPHORE, ACPI_SPINLOCK, format::CFmtConverter, OS_SERVICES_IMPLEMENTATION};
+use crate::{
+    format::CFmtConverter, ACPI_CPU_FLAGS, ACPI_MUTEX, ACPI_SEMAPHORE, ACPI_SPINLOCK,
+    ACPI_THREAD_ID, OS_SERVICES_IMPLEMENTATION,
+};
 
 #[no_mangle]
 #[linkage = "external"]
@@ -21,8 +24,10 @@ extern "C" fn AcpiOsTerminate() -> ACPI_STATUS {
 extern "C" fn AcpiOsGetRootPointer() -> ACPI_PHYSICAL_ADDRESS {
     let mut root_pointer = 0;
 
-    unsafe { AcpiFindRootPointer(&mut root_pointer); }
-        
+    unsafe {
+        AcpiFindRootPointer(&mut root_pointer);
+    }
+
     root_pointer as ACPI_PHYSICAL_ADDRESS
 }
 
@@ -413,7 +418,7 @@ extern "C" fn AcpiOsWritePciConfiguration(
 #[no_mangle]
 #[linkage = "external"]
 #[allow(dead_code)]
-extern "C" fn AcpiOsVprintf(format: *mut i8, mut args: VaList) {
+extern "C" fn AcpiOsVprintf(format: *mut i8, args: VaList) {
     let format = unsafe { CStr::from_ptr(format) };
     let format = format.to_str().unwrap();
 
@@ -424,7 +429,7 @@ extern "C" fn AcpiOsVprintf(format: *mut i8, mut args: VaList) {
             "{}",
             CFmtConverter {
                 format,
-                args: args.as_va_list()
+                args: args.clone()
             }
         ))
 }
