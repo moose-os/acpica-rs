@@ -11,7 +11,7 @@ fn read_format_parameter(
     match chars.peek() {
         Some('*') => {
             // SAFETY: '*' in a format parameter means to read the parameter as an int from the arguments
-            let param = unsafe { args.arg::<core::ffi::c_int>() as isize };
+            let param = unsafe { args.next_arg::<core::ffi::c_int>() as isize };
 
             chars.next();
 
@@ -307,7 +307,7 @@ fn match_formatter(
         Some('c') => f.write_fmt(format_args!("{}", unsafe {
             // It's u8, but C standard promotes vararg types smaller than 4 bytes
             // to int/double, so need to read a full int and care about lower 8 bits only.
-            let c: u8 = args.arg::<core::ffi::c_int>().try_into().unwrap();
+            let c: u8 = args.next_arg::<core::ffi::c_int>().try_into().unwrap();
 
             c as char
         }))?,
@@ -317,7 +317,7 @@ fn match_formatter(
             let min_length = params.minimum_width.unwrap_or(0);
 
             // SAFETY: '%d' and '%i' both mean the int data type
-            let value = unsafe { args.arg::<core::ffi::c_int>() };
+            let value = unsafe { args.next_arg::<core::ffi::c_int>() };
 
             format_int_signed(
                 f,
@@ -346,7 +346,7 @@ fn match_formatter(
             let min_length = params.minimum_width.unwrap_or(0);
 
             // SAFETY: '%u', '%o', '%x', and '%X' all mean the unsigned int data type
-            let value = unsafe { args.arg::<core::ffi::c_uint>() };
+            let value = unsafe { args.next_arg::<core::ffi::c_uint>() };
 
             format_int_unsigned(
                 f,
@@ -370,7 +370,7 @@ fn match_formatter(
         // Pointer
         // SAFETY: '%p' means a void* data type
         Some('p') => f.write_fmt(format_args!("{:p}", unsafe {
-            args.arg::<*const core::ffi::c_void>()
+            args.next_arg::<*const core::ffi::c_void>()
         }))?,
 
         // No hurry on implementing this because it doesn't look like it's used in ACPICA
@@ -396,7 +396,7 @@ unsafe fn print_string(
     pad_char: char,
 ) -> Result<(), core::fmt::Error> {
     // SAFETY: The next argument is a C string
-    let ptr = unsafe { args.arg::<*const u8>() };
+    let ptr = unsafe { args.next_arg::<*const u8>() };
 
     // If max length is specified, string may not be null-terminated
     let bytes = match params.precision {
